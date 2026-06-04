@@ -27,6 +27,8 @@ list_markdown_files() {
   find . \
     -type d \( \
       -name .git -o \
+      -name ".co""dex" -o \
+      -name ".cl""aude" -o \
       -name .venv -o \
       -name venv -o \
       -name node_modules -o \
@@ -41,7 +43,11 @@ list_markdown_files() {
       -name __pycache__ -o \
       -name third_party \
     \) -prune -o \
-    -type f -name "*.md" ! -name "DOC_INDEX.md" -print \
+    -type f -name "*.md" \
+      ! -name "DOC_INDEX.md" \
+      ! -iname "AGENTS.md" \
+      ! -iname "CLAUDE.md" \
+      -print \
   | sort
 }
 
