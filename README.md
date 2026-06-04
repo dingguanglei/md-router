@@ -105,7 +105,12 @@ grep -RIn "src/auth/login.ts" --include="*.md" .
 
 ## Use as a coding-agent skill
 
-Add these rules to your repo-level `AGENTS.md`:
+Use the templates under `agent/` when you want to install md-router as a coding-agent skill.
+
+- `agent/AGENTS.md` is suitable for Codex-style agents.
+- `agent/CLAUDE.md` is suitable for Claude Code.
+
+The core rules are:
 
 - Documentation is distributed across the repository.
 - `DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links.
@@ -181,26 +186,13 @@ LINKS
 Example output:
 
 ```md
-## FILE examples/todo-app/src/auth/README.md
-
-DIR: examples/todo-app/src/auth
-
-TITLE: Auth Module
-
-HEADINGS:
+## examples/todo-app/src/auth/README.md
 - L1 Auth Module
   - L5 Login Flow
   - L11 Session Validation
   - L17 Logout Behavior
-
-CODE_REFS:
-- src/auth/login.ts
-- src/auth/session.ts
-
-LINKS:
-- ../api/error_handling.md
-
----
+refs: `src/auth/login.ts`, `src/auth/session.ts`
+links: `../api/error_handling.md`
 ```
 
 ## Files
@@ -209,7 +201,7 @@ LINKS:
 scripts/doc_scan.sh      Generate DOC_INDEX.md
 scripts/doc_check.sh     Check whether DOC_INDEX.md is stale
 scripts/install_hook.sh  Install a pre-commit hook that updates DOC_INDEX.md
-AGENTS.md                Example agent rule
+agent/                   Agent-rule templates for Codex and Claude Code
 examples/                Small Todo API example
 ```
 

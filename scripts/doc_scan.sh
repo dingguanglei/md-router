@@ -59,42 +59,13 @@ cat > "$TMP" <<EOF2
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
 <!-- DOC_INDEX_SOURCE_HASH: $SOURCE_HASH -->
 
-This file is generated from Markdown headings, inline code paths, and Markdown links.
-
 EOF2
 
 list_markdown_files \
 | while read -r file; do
     clean="${file#./}"
-    dir="$(dirname "$clean")"
 
-    {
-      echo ""
-      echo "## FILE $clean"
-      echo ""
-      echo "DIR: $dir"
-      echo ""
-    } >> "$TMP"
-
-    title="$(awk '
-      BEGIN { in_code=0 }
-      /^```/ || /^~~~/ { in_code = !in_code; next }
-      !in_code && /^# / {
-        sub(/^# +/, "", $0)
-        sub(/ +#* *$/, "", $0)
-        print $0
-        exit
-      }
-    ' "$file")"
-
-    if [ -n "${title:-}" ]; then
-      echo "TITLE: $title" >> "$TMP"
-    else
-      echo "TITLE: <missing H1>" >> "$TMP"
-    fi
-
-    echo "" >> "$TMP"
-    echo "HEADINGS:" >> "$TMP"
+    echo "## $clean" >> "$TMP"
 
     awk '
       BEGIN { in_code=0 }
@@ -117,10 +88,7 @@ list_markdown_files \
       }
     ' "$file" >> "$TMP"
 
-    echo "" >> "$TMP"
-    echo "CODE_REFS:" >> "$TMP"
-
-    awk '
+    code_refs="$(awk '
       BEGIN { in_code=0 }
       /^```/ || /^~~~/ { in_code = !in_code; next }
 
@@ -129,17 +97,18 @@ list_markdown_files \
         while (match(line, /`[^`]+`/)) {
           ref = substr(line, RSTART + 1, RLENGTH - 2)
           if (ref ~ /[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+/) {
-            print "- " ref
+            print "`" ref "`"
           }
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u >> "$TMP"
+    ' "$file" | sort -u | paste -sd ', ' -)"
 
-    echo "" >> "$TMP"
-    echo "LINKS:" >> "$TMP"
+    if [ -n "${code_refs:-}" ]; then
+      echo "refs: $code_refs" >> "$TMP"
+    fi
 
-    awk '
+    links="$(awk '
       BEGIN { in_code=0 }
       /^```/ || /^~~~/ { in_code = !in_code; next }
 
@@ -149,14 +118,17 @@ list_markdown_files \
           link = substr(line, RSTART, RLENGTH)
           sub(/^.*\]\(/, "", link)
           sub(/\)$/, "", link)
-          print "- " link
+          print "`" link "`"
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u >> "$TMP"
+    ' "$file" | sort -u | paste -sd ', ' -)"
+
+    if [ -n "${links:-}" ]; then
+      echo "links: $links" >> "$TMP"
+    fi
 
     echo "" >> "$TMP"
-    echo "---" >> "$TMP"
   done
 
 mv "$TMP" "$OUT"
