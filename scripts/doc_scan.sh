@@ -19,6 +19,10 @@ hash_cmd_stdin() {
   fi
 }
 
+join_lines() {
+  awk 'BEGIN { first=1 } { if (!first) printf ", "; printf "%s", $0; first=0 }'
+}
+
 list_markdown_files() {
   find . \
     -type d \( \
@@ -68,32 +72,62 @@ list_markdown_files \
     echo "## $clean" >> "$TMP"
 
     awk '
-      BEGIN { in_code=0 }
-      /^```/ || /^~~~/ { in_code = !in_code; next }
+      BEGIN { in_code=0; fence="" }
+      {
+        raw = $0
+        lead = 0
+        while (substr(raw, lead + 1, 1) == " ") lead++
+        stripped = raw
+        if (lead <= 3) stripped = substr(raw, lead + 1)
 
-      !in_code && /^#+ / {
-        line = NR
-        level = 0
-        while (substr($0, level + 1, 1) == "#") level++
-        if (level > 3) next
+        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
+        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (in_code) {
+          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
+          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          next
+        }
 
-        text = $0
-        sub(/^#+ +/, "", text)
-        sub(/ +#* *$/, "", text)
+        if (lead >= 4 || raw ~ /^\t/) next
 
-        indent = ""
-        for (i = 1; i < level; i++) indent = indent "  "
+        if (stripped ~ /^#+[ \t]/) {
+          line = NR
+          level = 0
+          while (substr(stripped, level + 1, 1) == "#") level++
+          if (level > 3) next
 
-        printf "%s- L%d %s\n", indent, line, text
+          text = stripped
+          sub(/^#+[ \t]+/, "", text)
+          sub(/[ \t]+#*[ \t]*$/, "", text)
+
+          indent = ""
+          for (i = 1; i < level; i++) indent = indent "  "
+
+          printf "%s- L%d %s\n", indent, line, text
+        }
       }
     ' "$file" >> "$TMP"
 
     code_refs="$(awk '
-      BEGIN { in_code=0 }
-      /^```/ || /^~~~/ { in_code = !in_code; next }
+      BEGIN { in_code=0; fence="" }
+      {
+        raw = $0
+        lead = 0
+        while (substr(raw, lead + 1, 1) == " ") lead++
+        stripped = raw
+        if (lead <= 3) stripped = substr(raw, lead + 1)
 
-      !in_code {
-        line = $0
+        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
+        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (in_code) {
+          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
+          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          next
+        }
+
+        if (lead >= 4 || raw ~ /^\t/) next
+
+        line = raw
         while (match(line, /`[^`]+`/)) {
           ref = substr(line, RSTART + 1, RLENGTH - 2)
           if (ref ~ /[A-Za-z0-9_.-]+\/[A-Za-z0-9_./-]+/) {
@@ -102,18 +136,32 @@ list_markdown_files \
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u | paste -sd ', ' -)"
+    ' "$file" | sort -u | join_lines)"
 
     if [ -n "${code_refs:-}" ]; then
       echo "refs: $code_refs" >> "$TMP"
     fi
 
     links="$(awk '
-      BEGIN { in_code=0 }
-      /^```/ || /^~~~/ { in_code = !in_code; next }
+      BEGIN { in_code=0; fence="" }
+      {
+        raw = $0
+        lead = 0
+        while (substr(raw, lead + 1, 1) == " ") lead++
+        stripped = raw
+        if (lead <= 3) stripped = substr(raw, lead + 1)
 
-      !in_code {
-        line = $0
+        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
+        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (in_code) {
+          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
+          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          next
+        }
+
+        if (lead >= 4 || raw ~ /^\t/) next
+
+        line = raw
         while (match(line, /\[[^]]+\]\([^)]+\.md(#[^)]+)?\)/)) {
           link = substr(line, RSTART, RLENGTH)
           sub(/^.*\]\(/, "", link)
@@ -122,7 +170,7 @@ list_markdown_files \
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u | paste -sd ', ' -)"
+    ' "$file" | sort -u | join_lines)"
 
     if [ -n "${links:-}" ]; then
       echo "links: $links" >> "$TMP"
