@@ -1,120 +1,251 @@
-# Markdown Doc Router
+# md-router
 
-A tiny, dependency-free documentation indexing skill for large code repositories.
+A tiny heading-based Markdown indexer for docs-everywhere repositories.
 
-It assumes documentation can live anywhere in the repo, next to the code, config, data, or module it explains. The tool scans Markdown files and generates a grep-friendly `DOC_INDEX.md` from:
-
-- Markdown H1/H2/H3 headings
-- Inline code path references such as `src/model/action_head.py`
-- Markdown links to other `.md` files
-
-No Python. No Node. No frontmatter. No vector database. No centralized `docs/` directory required.
+`md-router` lets you keep documentation next to the code, config, or data it explains, while generating a grep-friendly `DOC_INDEX.md` that coding agents can search before editing.
 
 ## Why
 
-Large projects often contain many local README/DESIGN/USAGE markdown files. LLM coding agents may miss them because they are not always in the active context.
+In large repositories, documentation often lives everywhere:
 
-This repo provides a lightweight mechanism:
+- module docs next to source code
+- API docs next to route handlers
+- migration notes next to database code
+- deployment notes next to config files
 
-```text
-Markdown everywhere
-  -> scripts/doc_scan.sh
-  -> DOC_INDEX.md
-  -> rg/grep search by human or coding agent
-```
+That is good for humans, but coding agents can miss those docs unless there is a searchable index.
 
-## Files
+`md-router` solves this by extracting:
 
-```text
-scripts/doc_scan.sh     Generate DOC_INDEX.md
-scripts/doc_check.sh    Check whether DOC_INDEX.md is stale
-scripts/install_hook.sh Install a pre-commit hook that auto-updates DOC_INDEX.md
-AGENTS.md              Suggested agent rules
-DOC_INDEX.md           Generated index, committed to repo
-```
+- Markdown headings
+- heading line numbers
+- inline code path references
+- Markdown document links
 
-## Quick start
+and writing them into a single `DOC_INDEX.md`.
 
-Copy the scripts into your repo:
+## Design principles
+
+- Keep docs close to what they explain.
+- Use Markdown headings as the source of structure.
+- Do not require frontmatter, YAML, JSON, embeddings, or a database.
+- Do not manually maintain duplicate metadata.
+- Generate an index that works with `rg`, `grep`, Codex, Claude Code, Cursor, Aider, and other repo-aware agents.
+
+## Install
+
+Copy the scripts into your repository:
 
 ```bash
 mkdir -p scripts
 cp scripts/doc_scan.sh scripts/doc_check.sh scripts/install_hook.sh /path/to/your/repo/scripts/
-cp AGENTS.md /path/to/your/repo/AGENTS.md
 ```
 
-Generate the index:
+Then generate the index:
 
 ```bash
 ./scripts/doc_scan.sh
 ```
 
-Search the index:
+This creates or updates:
 
-```bash
-rg "src/model/action_head.py|action head|72D|joint mask" DOC_INDEX.md
+```text
+DOC_INDEX.md
 ```
 
-Check freshness:
+## Usage
+
+### Generate the index
+
+```bash
+./scripts/doc_scan.sh
+```
+
+### Check whether the index is up to date
 
 ```bash
 ./scripts/doc_check.sh
 ```
 
-Install pre-commit auto-sync:
+### Install the pre-commit hook
 
 ```bash
 ./scripts/install_hook.sh
 ```
 
-## Markdown writing contract
+The hook updates `DOC_INDEX.md` automatically before commits that include Markdown changes.
 
-To make documents easy to index:
+## Searching the index
 
-1. Use exactly one H1 per markdown file.
-2. Use semantic H2/H3 headings.
-3. Put concrete code paths in backticks.
-4. Use Markdown links for cross-document references.
-5. Do not manually edit `DOC_INDEX.md`.
+Search by target file path:
 
-Good example:
-
-```md
-# Action Head
-
-## 72D Action Output
-
-Implementation: `src/model/action_head.py`.
-
-## Robot Joint Masking
-
-See [Robot Joint Mapping](../../configs/robots/joint_mapping.md).
+```bash
+rg "src/auth/login.ts" DOC_INDEX.md
 ```
 
-## Generated index format
+Search by domain terms:
+
+```bash
+rg "auth|login|session" DOC_INDEX.md
+```
+
+Search Markdown directly when needed:
+
+```bash
+rg "src/auth/login.ts" --glob "*.md"
+rg "^#{1,3} " --glob "*.md"
+```
+
+If `rg` is unavailable, use `grep`:
+
+```bash
+grep -nE "auth|login|session" DOC_INDEX.md
+grep -RIn "src/auth/login.ts" --include="*.md" .
+```
+
+## Use as a coding-agent skill
+
+Add the following rule to your repo-level `AGENTS.md`:
 
 ```md
-## FILE src/model/action_head.md
+# AGENTS.md
 
-DIR: src/model
-TITLE: Action Head
+Documentation is distributed across the repository.
+
+`DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links. Do not edit it manually.
+
+Before editing code:
+
+1. Search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
+2. If needed, search Markdown files directly with `rg` or `grep`.
+3. Read the matching Markdown documents or sections before modifying code.
+
+Useful commands:
+
+```bash
+rg "<target/file>" DOC_INDEX.md
+rg "<keyword1>|<keyword2>" DOC_INDEX.md
+rg "<target/file>" --glob "*.md"
+rg "^#{1,3} " --glob "*.md"
+```
+
+After editing Markdown files:
+
+```bash
+./scripts/doc_scan.sh
+```
+
+Markdown writing rules:
+
+- Use exactly one H1.
+- Use semantic H2/H3 headings.
+- Put code paths in backticks.
+- Use Markdown links for cross-document references.
+```
+
+## Markdown style for best results
+
+Good Markdown structure makes the generated index more useful.
+
+Prefer:
+
+```md
+# Auth Module
+
+The auth module handles login, sessions, token validation, and logout behavior.
+
+## Login Flow
+
+The login flow validates credentials and creates a signed session token.
+
+Implementation: `src/auth/login.ts`.
+
+## Session Validation
+
+Session validation checks incoming API requests and rejects expired tokens.
+
+See [API Error Handling](../api/error_handling.md).
+```
+
+Avoid vague headings:
+
+```md
+## Overview
+## Details
+## Notes
+## Misc
+```
+
+Prefer semantic headings:
+
+```md
+## Login Flow
+## Session Validation
+## Token Expiration
+## API Error Handling
+```
+
+## What gets indexed
+
+`doc_scan.sh` extracts:
+
+```text
+FILE
+DIR
+TITLE
+HEADINGS
+CODE_REFS
+LINKS
+```
+
+Example output:
+
+```md
+## FILE examples/todo-app/src/auth/README.md
+
+DIR: examples/todo-app/src/auth
+
+TITLE: Auth Module
 
 HEADINGS:
-- H1 L1 Action Head
-- H2 L3 72D Action Output
-- H2 L7 Robot Joint Masking
+- H1 L1 Auth Module
+- H2 L5 Login Flow
+- H2 L11 Session Validation
+- H2 L17 Logout Behavior
 
 CODE_REFS:
-- src/model/action_head.py
+- src/auth/login.ts
+- src/auth/session.ts
 
 LINKS:
-- ../../configs/robots/joint_mapping.md
+- ../api/error_handling.md
+
+---
 ```
 
-## Design principles
+## Files
 
-- Documentation location carries meaning.
-- Markdown headings are the semantic skeleton.
-- The index is derived from source docs, not manually maintained.
-- Search is done with `rg`/`grep`, not custom RAG.
-- Generated files are protected by a source hash.
+```text
+scripts/doc_scan.sh      Generate DOC_INDEX.md
+scripts/doc_check.sh     Check whether DOC_INDEX.md is stale
+scripts/install_hook.sh  Install a pre-commit hook that updates DOC_INDEX.md
+AGENTS.md                Example agent rule
+examples/                Small Todo API example
+```
+
+## Requirements
+
+Only standard shell tools:
+
+- `bash`
+- `awk`
+- `find`
+- `sort`
+- `grep`
+- `sha256sum` or `shasum`
+
+No Python, Node.js, database, or vector index is required.
+
+## License
+
+MIT

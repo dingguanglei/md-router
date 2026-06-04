@@ -4,7 +4,7 @@ Documentation is distributed across the repository.
 
 `DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links. Do not edit it manually.
 
-## Before editing code
+Before editing code:
 
 1. Search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
 2. If needed, search Markdown files directly with `rg` or `grep`.
@@ -13,37 +13,34 @@ Documentation is distributed across the repository.
 Useful commands:
 
 ```bash
-rg "<target/file.py>" DOC_INDEX.md
+rg "<target/file>" DOC_INDEX.md
 rg "<keyword1>|<keyword2>" DOC_INDEX.md
-rg "<target/file.py>" --glob "*.md"
+rg "<target/file>" --glob "*.md"
 rg "^#{1,3} " --glob "*.md"
 ```
 
-If `rg` is unavailable:
+If `rg` is unavailable, use:
 
 ```bash
-grep -RIn "<target/file.py>" --include="*.md" .
 grep -nE "<keyword1>|<keyword2>" DOC_INDEX.md
+grep -RIn "<target/file>" --include="*.md" .
 ```
 
-## After editing Markdown files
-
-After creating, deleting, renaming, or editing any Markdown file, run:
+After editing Markdown files:
 
 ```bash
 ./scripts/doc_scan.sh
 ```
 
-Before relying on the index, check freshness:
+Before relying on `DOC_INDEX.md`, verify it is fresh:
 
 ```bash
 ./scripts/doc_check.sh
 ```
 
-## Markdown writing rules
+Markdown writing rules:
 
-- Use exactly one H1 per Markdown file.
+- Use exactly one H1.
 - Use semantic H2/H3 headings.
-- Put concrete code paths in backticks, for example `src/model/action_head.py`.
+- Put code paths in backticks.
 - Use Markdown links for cross-document references.
-- Do not manually edit `DOC_INDEX.md`.

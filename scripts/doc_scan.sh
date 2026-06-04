@@ -51,8 +51,9 @@ compute_docs_hash() {
 }
 
 SOURCE_HASH="$(compute_docs_hash)"
+TMP="${OUT}.tmp"
 
-cat > "$OUT" <<EOF2
+cat > "$TMP" <<EOF2
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
@@ -73,7 +74,7 @@ list_markdown_files \
       echo ""
       echo "DIR: $dir"
       echo ""
-    } >> "$OUT"
+    } >> "$TMP"
 
     title="$(awk '
       BEGIN { in_code=0 }
@@ -87,13 +88,13 @@ list_markdown_files \
     ' "$file")"
 
     if [ -n "${title:-}" ]; then
-      echo "TITLE: $title" >> "$OUT"
+      echo "TITLE: $title" >> "$TMP"
     else
-      echo "TITLE: <missing H1>" >> "$OUT"
+      echo "TITLE: <missing H1>" >> "$TMP"
     fi
 
-    echo "" >> "$OUT"
-    echo "HEADINGS:" >> "$OUT"
+    echo "" >> "$TMP"
+    echo "HEADINGS:" >> "$TMP"
 
     awk '
       BEGIN { in_code=0 }
@@ -110,10 +111,10 @@ list_markdown_files \
 
         printf "- H%d L%d %s\n", level, line, text
       }
-    ' "$file" >> "$OUT"
+    ' "$file" >> "$TMP"
 
-    echo "" >> "$OUT"
-    echo "CODE_REFS:" >> "$OUT"
+    echo "" >> "$TMP"
+    echo "CODE_REFS:" >> "$TMP"
 
     awk '
       BEGIN { in_code=0 }
@@ -129,10 +130,10 @@ list_markdown_files \
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u >> "$OUT"
+    ' "$file" | sort -u >> "$TMP"
 
-    echo "" >> "$OUT"
-    echo "LINKS:" >> "$OUT"
+    echo "" >> "$TMP"
+    echo "LINKS:" >> "$TMP"
 
     awk '
       BEGIN { in_code=0 }
@@ -148,10 +149,11 @@ list_markdown_files \
           line = substr(line, RSTART + RLENGTH)
         }
       }
-    ' "$file" | sort -u >> "$OUT"
+    ' "$file" | sort -u >> "$TMP"
 
-    echo "" >> "$OUT"
-    echo "---" >> "$OUT"
+    echo "" >> "$TMP"
+    echo "---" >> "$TMP"
   done
 
-echo "Updated $OUT"
+mv "$TMP" "$OUT"
+echo "Generated $OUT"
