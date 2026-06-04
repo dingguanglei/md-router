@@ -122,14 +122,14 @@ CLAUDE.md
 DOC_INDEX.md
 ```
 
-The `agent/` directory in this repository provides templates, but files with these names are ignored when generating `DOC_INDEX.md`.
+The agent directory in this repository provides templates, but files with these names are ignored when generating `DOC_INDEX.md`.
 
 ## Use as a coding-agent skill
 
-Use the templates under `agent/` when you want to install md-router as a coding-agent skill.
+Use the templates under the agent directory when you want to install md-router as a coding-agent skill.
 
-- `agent/AGENTS.md` is suitable for Codex-style agents.
-- `agent/CLAUDE.md` is suitable for Claude Code.
+- The AGENTS template is suitable for Codex-style agents.
+- The CLAUDE template is suitable for Claude Code.
 
 The core rules are:
 
