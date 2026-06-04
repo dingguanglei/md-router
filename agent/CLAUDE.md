@@ -36,6 +36,7 @@ Before relying on the index:
 Markdown writing rules:
 
 - Use exactly one H1.
-- Use semantic H2/H3 headings.
+- Use valid ATX headings: `# Title`, `## Section`, and `### Subsection`.
+- Put a space or tab after the `#` marker.
 - Put code paths in backticks.
 - Use Markdown links for cross-document references.
