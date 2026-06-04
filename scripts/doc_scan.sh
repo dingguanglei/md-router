@@ -100,16 +100,20 @@ list_markdown_files \
       BEGIN { in_code=0 }
       /^```/ || /^~~~/ { in_code = !in_code; next }
 
-      !in_code && /^#{1,3} / {
+      !in_code && /^#+ / {
         line = NR
         level = 0
         while (substr($0, level + 1, 1) == "#") level++
+        if (level > 3) next
 
         text = $0
-        sub(/^#{1,3} +/, "", text)
+        sub(/^#+ +/, "", text)
         sub(/ +#* *$/, "", text)
 
-        printf "- H%d L%d %s\n", level, line, text
+        indent = ""
+        for (i = 1; i < level; i++) indent = indent "  "
+
+        printf "%s- L%d %s\n", indent, line, text
       }
     ' "$file" >> "$TMP"
 
