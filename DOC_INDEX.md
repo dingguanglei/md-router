@@ -1,25 +1,19 @@
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
-<!-- DOC_INDEX_SOURCE_HASH: c4055b559d349bd9ef34cb0f6eb2898e71c2b6a38e6e9bcad48dcbb0cd511e32 -->
+<!-- DOC_INDEX_SOURCE_HASH: 87cd93de297e9575aeca6d2a3632499c34e8192dfe7273ce40410f4933ba36b9 -->
 
 ## README.md
 - L1 md-router
   - L7 Why
-  - L27 Design principles
-  - L35 Install
-  - L56 Usage
-    - L58 Generate the index
-    - L64 Check whether the index is up to date
-    - L70 Install the pre-commit hook
-  - L78 Searching the index
-  - L106 Default ignores
-  - L127 Use as a coding-agent skill
-  - L152 Markdown style for best results
-  - L219 What gets indexed
-  - L242 Files
-  - L252 Requirements
-  - L265 License
+  - L13 Install
+  - L40 Search workflow
+  - L63 Default ignores
+  - L75 Use as a coding-agent skill
+  - L86 Markdown style
+  - L107 Compact index format
+  - L120 Requirements
+  - L126 License
 refs: `./scripts/doc_scan.sh`
 
 ## examples/todo-app/config/README.md
