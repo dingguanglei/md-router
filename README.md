@@ -6,31 +6,9 @@ A tiny heading-based Markdown indexer for docs-everywhere repositories.
 
 ## Why
 
-In large repositories, documentation often lives everywhere:
+Large repositories often keep documentation next to the modules, APIs, database code, config, or data it explains. That layout is good for humans, but coding agents can miss those docs unless there is a searchable index.
 
-- module docs next to source code
-- API docs next to route handlers
-- migration notes next to database code
-- deployment notes next to config files
-
-That is good for humans, but coding agents can miss those docs unless there is a searchable index.
-
-`md-router` solves this by extracting:
-
-- Markdown headings
-- heading line numbers
-- inline code path references
-- Markdown document links
-
-and writing them into a single `DOC_INDEX.md`.
-
-## Design principles
-
-- Keep docs close to what they explain.
-- Use Markdown headings as the source of structure.
-- Do not require frontmatter, YAML, JSON, embeddings, or a database.
-- Do not manually maintain duplicate metadata.
-- Generate an index that works with `rg`, `grep`, Codex, Claude Code, Cursor, Aider, and other repo-aware agents.
+`md-router` extracts Markdown headings, heading line numbers, inline code path references, and Markdown document links into a single compact `DOC_INDEX.md`.
 
 ## Install
 
@@ -41,80 +19,52 @@ mkdir -p scripts
 cp scripts/doc_scan.sh scripts/doc_check.sh scripts/install_hook.sh /path/to/your/repo/scripts/
 ```
 
-Then generate the index:
+Generate the index:
 
 ```bash
 ./scripts/doc_scan.sh
 ```
 
-This creates or updates:
-
-```text
-DOC_INDEX.md
-```
-
-## Usage
-
-### Generate the index
-
-```bash
-./scripts/doc_scan.sh
-```
-
-### Check whether the index is up to date
+Check freshness:
 
 ```bash
 ./scripts/doc_check.sh
 ```
 
-### Install the pre-commit hook
+Install the pre-commit hook:
 
 ```bash
 ./scripts/install_hook.sh
 ```
 
-The hook updates `DOC_INDEX.md` automatically before commits that include Markdown changes.
+## Search workflow
 
-## Searching the index
-
-Search by target file path:
+Search the generated index first:
 
 ```bash
 rg "src/auth/login.ts" DOC_INDEX.md
-```
-
-Search by domain terms:
-
-```bash
 rg "auth|login|session" DOC_INDEX.md
 ```
 
-Search Markdown directly when needed:
+Search project Markdown directly only when needed. Exclude generated indexes and agent instruction files to avoid recursive index hits:
 
 ```bash
-rg "src/auth/login.ts" --glob "*.md"
-rg "^#{1,3} " --glob "*.md"
+rg "src/auth/login.ts" --glob "*.md" --glob "!DOC_INDEX.md" --glob "!AGENTS.md" --glob "!CLAUDE.md"
+rg "^#{1,3} " --glob "*.md" --glob "!DOC_INDEX.md" --glob "!AGENTS.md" --glob "!CLAUDE.md"
 ```
 
-If `rg` is unavailable, use `grep`:
+If `rg` is unavailable:
 
 ```bash
 grep -nE "auth|login|session" DOC_INDEX.md
-grep -RIn "src/auth/login.ts" --include="*.md" .
+find . -type f -name "*.md" ! -name "DOC_INDEX.md" ! -iname "AGENTS.md" ! -iname "CLAUDE.md" -print0 | xargs -0 grep -nE "src/auth/login.ts"
 ```
 
 ## Default ignores
 
-`md-router` indexes project documentation by default. It intentionally ignores common agent-instruction files and directories so the index does not become polluted by tool-specific instructions.
+`md-router` indexes project documentation by default. It intentionally ignores common agent-instruction files and generated index files.
 
-Default ignored directories:
-
-```text
-.codex/
-.claude/
-```
-
-Default ignored files:
+Ignored directories include common Codex and Claude instruction directories. Ignored files include:
 
 ```text
 AGENTS.md
@@ -122,36 +72,18 @@ CLAUDE.md
 DOC_INDEX.md
 ```
 
-The agent directory in this repository provides templates, but files with these names are ignored when generating `DOC_INDEX.md`.
-
 ## Use as a coding-agent skill
 
-Use the templates under the agent directory when you want to install md-router as a coding-agent skill.
+Use the templates under the agent directory when installing `md-router` as a coding-agent skill.
 
-- The AGENTS template is suitable for Codex-style agents.
-- The CLAUDE template is suitable for Claude Code.
+Core rules:
 
-The core rules are:
-
-- Documentation is distributed across the repository.
-- `DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links.
-- Do not edit `DOC_INDEX.md` manually.
-- Before editing code, search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
-- Read the matching Markdown documents or sections before modifying code.
+- Search `DOC_INDEX.md` before editing code.
+- If direct Markdown search is needed, exclude generated indexes and agent instruction files.
+- Read matching project docs before modifying code.
 - After editing Markdown files, run `./scripts/doc_scan.sh`.
 
-Useful commands for agents:
-
-```bash
-rg "path/to/target_file" DOC_INDEX.md
-rg "keyword1|keyword2" DOC_INDEX.md
-rg "path/to/target_file" --glob "*.md"
-rg "^#{1,3} " --glob "*.md"
-```
-
-## Markdown style for best results
-
-Good Markdown structure makes the generated index more useful.
+## Markdown style
 
 `md-router` indexes valid ATX headings only:
 
@@ -161,71 +93,18 @@ Good Markdown structure makes the generated index more useful.
 ### Subsection
 ```
 
-Heading rules:
+Rules:
 
-- Use a space or tab after the `#` marker.
-- Use at most three leading spaces before the heading marker.
+- Use exactly one H1 per document.
+- Put a space or tab after the `#` marker.
 - Use H1-H3 for indexed structure.
+- Put code paths in backticks.
+- Use Markdown links for cross-document references.
 - Use ATX headings instead of Setext headings.
 
-Setext headings are intentionally ignored in the MVP:
+Setext headings are intentionally ignored in the MVP.
 
-```md
-Title
-=====
-
-Section
--------
-```
-
-Prefer:
-
-```md
-# Auth Module
-
-The auth module handles login, sessions, token validation, and logout behavior.
-
-## Login Flow
-
-The login flow validates credentials and creates a signed session token.
-
-Implementation: `src/auth/login.ts`.
-
-## Session Validation
-
-Session validation checks incoming API requests and rejects expired tokens.
-
-See [API Error Handling](../api/error_handling.md).
-```
-
-Avoid vague headings:
-
-```md
-## Overview
-## Details
-## Notes
-## Misc
-```
-
-Prefer semantic headings:
-
-```md
-## Login Flow
-## Session Validation
-## Token Expiration
-## API Error Handling
-```
-
-## What gets indexed
-
-`doc_scan.sh` extracts:
-
-```text
-file path
-H1-H3 heading tree
-inline code path references
-Markdown document links
-```
+## Compact index format
 
 Example output:
 
@@ -234,31 +113,13 @@ Example output:
 - L1 Auth Module
   - L5 Login Flow
   - L11 Session Validation
-  - L17 Logout Behavior
 refs: `src/auth/login.ts`, `src/auth/session.ts`
 links: `../api/error_handling.md`
 ```
 
-## Files
-
-```text
-scripts/doc_scan.sh      Generate DOC_INDEX.md
-scripts/doc_check.sh     Check whether DOC_INDEX.md is stale
-scripts/install_hook.sh  Install a pre-commit hook that updates DOC_INDEX.md
-agent/                   Agent-rule templates for Codex and Claude Code
-examples/                Small Todo API example
-```
-
 ## Requirements
 
-Only standard shell tools:
-
-- `bash`
-- `awk`
-- `find`
-- `sort`
-- `grep`
-- `sha256sum` or `shasum`
+Only standard shell tools are required: `bash`, `awk`, `find`, `sort`, `grep`, and `sha256sum` or `shasum`.
 
 No Python, Node.js, database, or vector index is required.
 
