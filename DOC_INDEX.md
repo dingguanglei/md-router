@@ -1,7 +1,7 @@
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
-<!-- DOC_INDEX_SOURCE_HASH: aeb5ff49812c14203e9334a9f79fa6043d0e9735fe028a9343eb534675ac6f97 -->
+<!-- DOC_INDEX_SOURCE_HASH: c73d6efc79c49c77d8f83f966f1267f0a8f44df22be26f6bb37fe3d9a5d4adb2 -->
 
 ## AGENTS.md
 - L1 AGENTS.md
@@ -18,10 +18,10 @@
   - L78 Searching the index
   - L106 Use as a coding-agent skill
   - L131 Markdown style for best results
-  - L173 What gets indexed
-  - L198 Files
-  - L208 Requirements
-  - L221 License
+  - L198 What gets indexed
+  - L221 Files
+  - L231 Requirements
+  - L244 License
 refs: `./scripts/doc_scan.sh`, `agent/AGENTS.md`, `agent/CLAUDE.md`
 
 ## agent/AGENTS.md
