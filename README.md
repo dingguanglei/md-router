@@ -103,6 +103,27 @@ grep -nE "auth|login|session" DOC_INDEX.md
 grep -RIn "src/auth/login.ts" --include="*.md" .
 ```
 
+## Default ignores
+
+`md-router` indexes project documentation by default. It intentionally ignores common agent-instruction files and directories so the index does not become polluted by tool-specific instructions.
+
+Default ignored directories:
+
+```text
+.codex/
+.claude/
+```
+
+Default ignored files:
+
+```text
+AGENTS.md
+CLAUDE.md
+DOC_INDEX.md
+```
+
+The `agent/` directory in this repository provides templates, but files with these names are ignored when generating `DOC_INDEX.md`.
+
 ## Use as a coding-agent skill
 
 Use the templates under `agent/` when you want to install md-router as a coding-agent skill.
