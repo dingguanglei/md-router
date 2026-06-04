@@ -105,42 +105,22 @@ grep -RIn "src/auth/login.ts" --include="*.md" .
 
 ## Use as a coding-agent skill
 
-Add the following rule to your repo-level `AGENTS.md`:
+Add these rules to your repo-level `AGENTS.md`:
 
-```md
-# AGENTS.md
+- Documentation is distributed across the repository.
+- `DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links.
+- Do not edit `DOC_INDEX.md` manually.
+- Before editing code, search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
+- Read the matching Markdown documents or sections before modifying code.
+- After editing Markdown files, run `./scripts/doc_scan.sh`.
 
-Documentation is distributed across the repository.
-
-`DOC_INDEX.md` is auto-generated from Markdown headings, inline code paths, and Markdown links. Do not edit it manually.
-
-Before editing code:
-
-1. Search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
-2. If needed, search Markdown files directly with `rg` or `grep`.
-3. Read the matching Markdown documents or sections before modifying code.
-
-Useful commands:
+Useful commands for agents:
 
 ```bash
-rg "<target/file>" DOC_INDEX.md
-rg "<keyword1>|<keyword2>" DOC_INDEX.md
-rg "<target/file>" --glob "*.md"
+rg "path/to/target_file" DOC_INDEX.md
+rg "keyword1|keyword2" DOC_INDEX.md
+rg "path/to/target_file" --glob "*.md"
 rg "^#{1,3} " --glob "*.md"
-```
-
-After editing Markdown files:
-
-```bash
-./scripts/doc_scan.sh
-```
-
-Markdown writing rules:
-
-- Use exactly one H1.
-- Use semantic H2/H3 headings.
-- Put code paths in backticks.
-- Use Markdown links for cross-document references.
 ```
 
 ## Markdown style for best results
@@ -208,10 +188,10 @@ DIR: examples/todo-app/src/auth
 TITLE: Auth Module
 
 HEADINGS:
-- H1 L1 Auth Module
-- H2 L5 Login Flow
-- H2 L11 Session Validation
-- H2 L17 Logout Behavior
+- L1 Auth Module
+  - L5 Login Flow
+  - L11 Session Validation
+  - L17 Logout Behavior
 
 CODE_REFS:
 - src/auth/login.ts
