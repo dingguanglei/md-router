@@ -1,10 +1,7 @@
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
-<!-- DOC_INDEX_SOURCE_HASH: c73d6efc79c49c77d8f83f966f1267f0a8f44df22be26f6bb37fe3d9a5d4adb2 -->
-
-## AGENTS.md
-- L1 AGENTS.md
+<!-- DOC_INDEX_SOURCE_HASH: c4055b559d349bd9ef34cb0f6eb2898e71c2b6a38e6e9bcad48dcbb0cd511e32 -->
 
 ## README.md
 - L1 md-router
@@ -16,19 +13,14 @@
     - L64 Check whether the index is up to date
     - L70 Install the pre-commit hook
   - L78 Searching the index
-  - L106 Use as a coding-agent skill
-  - L131 Markdown style for best results
-  - L198 What gets indexed
-  - L221 Files
-  - L231 Requirements
-  - L244 License
-refs: `./scripts/doc_scan.sh`, `agent/AGENTS.md`, `agent/CLAUDE.md`
-
-## agent/AGENTS.md
-- L1 AGENTS.md
-
-## agent/CLAUDE.md
-- L1 CLAUDE.md
+  - L106 Default ignores
+  - L127 Use as a coding-agent skill
+  - L152 Markdown style for best results
+  - L219 What gets indexed
+  - L242 Files
+  - L252 Requirements
+  - L265 License
+refs: `./scripts/doc_scan.sh`
 
 ## examples/todo-app/config/README.md
 - L1 Config Module
