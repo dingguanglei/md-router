@@ -72,7 +72,13 @@ list_markdown_files \
     echo "## $clean" >> "$TMP"
 
     awk '
-      BEGIN { in_code=0; fence="" }
+      function fence_run(s, ch,   n) {
+        n = 0
+        while (substr(s, n + 1, 1) == ch) n++
+        return n
+      }
+
+      BEGIN { in_code=0; fence=""; fence_len=0 }
       {
         raw = $0
         lead = 0
@@ -80,11 +86,19 @@ list_markdown_files \
         stripped = raw
         if (lead <= 3) stripped = substr(raw, lead + 1)
 
-        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
-        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (!in_code && lead <= 3 && fence_run(stripped, "`") >= 3) {
+          in_code=1; fence="`"; fence_len=fence_run(stripped, "`"); next
+        }
+        if (!in_code && lead <= 3 && fence_run(stripped, "~") >= 3) {
+          in_code=1; fence="~"; fence_len=fence_run(stripped, "~"); next
+        }
+
         if (in_code) {
-          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
-          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          if (lead <= 3 && fence == "`" && fence_run(stripped, "`") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          } else if (lead <= 3 && fence == "~" && fence_run(stripped, "~") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          }
           next
         }
 
@@ -109,7 +123,13 @@ list_markdown_files \
     ' "$file" >> "$TMP"
 
     code_refs="$(awk '
-      BEGIN { in_code=0; fence="" }
+      function fence_run(s, ch,   n) {
+        n = 0
+        while (substr(s, n + 1, 1) == ch) n++
+        return n
+      }
+
+      BEGIN { in_code=0; fence=""; fence_len=0 }
       {
         raw = $0
         lead = 0
@@ -117,11 +137,19 @@ list_markdown_files \
         stripped = raw
         if (lead <= 3) stripped = substr(raw, lead + 1)
 
-        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
-        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (!in_code && lead <= 3 && fence_run(stripped, "`") >= 3) {
+          in_code=1; fence="`"; fence_len=fence_run(stripped, "`"); next
+        }
+        if (!in_code && lead <= 3 && fence_run(stripped, "~") >= 3) {
+          in_code=1; fence="~"; fence_len=fence_run(stripped, "~"); next
+        }
+
         if (in_code) {
-          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
-          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          if (lead <= 3 && fence == "`" && fence_run(stripped, "`") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          } else if (lead <= 3 && fence == "~" && fence_run(stripped, "~") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          }
           next
         }
 
@@ -143,7 +171,13 @@ list_markdown_files \
     fi
 
     links="$(awk '
-      BEGIN { in_code=0; fence="" }
+      function fence_run(s, ch,   n) {
+        n = 0
+        while (substr(s, n + 1, 1) == ch) n++
+        return n
+      }
+
+      BEGIN { in_code=0; fence=""; fence_len=0 }
       {
         raw = $0
         lead = 0
@@ -151,11 +185,19 @@ list_markdown_files \
         stripped = raw
         if (lead <= 3) stripped = substr(raw, lead + 1)
 
-        if (!in_code && lead <= 3 && stripped ~ /^```/) { in_code=1; fence="`"; next }
-        if (!in_code && lead <= 3 && stripped ~ /^~~~/) { in_code=1; fence="~"; next }
+        if (!in_code && lead <= 3 && fence_run(stripped, "`") >= 3) {
+          in_code=1; fence="`"; fence_len=fence_run(stripped, "`"); next
+        }
+        if (!in_code && lead <= 3 && fence_run(stripped, "~") >= 3) {
+          in_code=1; fence="~"; fence_len=fence_run(stripped, "~"); next
+        }
+
         if (in_code) {
-          if (lead <= 3 && fence == "`" && stripped ~ /^```/) { in_code=0; fence="" }
-          else if (lead <= 3 && fence == "~" && stripped ~ /^~~~/) { in_code=0; fence="" }
+          if (lead <= 3 && fence == "`" && fence_run(stripped, "`") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          } else if (lead <= 3 && fence == "~" && fence_run(stripped, "~") >= fence_len) {
+            in_code=0; fence=""; fence_len=0
+          }
           next
         }
 
