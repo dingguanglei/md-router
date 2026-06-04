@@ -1,7 +1,7 @@
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
-<!-- DOC_INDEX_SOURCE_HASH: f6e4b354c4384d6593112aedbd7a8ac2861345978421287ecd99e2730f597403 -->
+<!-- DOC_INDEX_SOURCE_HASH: aeb5ff49812c14203e9334a9f79fa6043d0e9735fe028a9343eb534675ac6f97 -->
 
 ## AGENTS.md
 - L1 AGENTS.md
@@ -19,9 +19,9 @@
   - L106 Use as a coding-agent skill
   - L131 Markdown style for best results
   - L173 What gets indexed
-  - L204 Files
-  - L214 Requirements
-  - L227 License
+  - L198 Files
+  - L208 Requirements
+  - L221 License
 refs: `./scripts/doc_scan.sh`, `agent/AGENTS.md`, `agent/CLAUDE.md`
 
 ## agent/AGENTS.md
@@ -89,4 +89,3 @@ links: `migrations.md`
   - L9 Applying Migrations
   - L15 Rollback Policy
 refs: `src/db/migrate.ts`, `src/db/migrations/`
-
