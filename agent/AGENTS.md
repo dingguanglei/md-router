@@ -9,7 +9,7 @@ Documentation may live next to the code, config, or data it explains.
 Before editing code:
 
 1. Search `DOC_INDEX.md` for the target file path, filename tokens, and relevant domain terms.
-2. If needed, search Markdown files directly with `rg` or `grep`.
+2. If needed, search project Markdown files directly, excluding `DOC_INDEX.md` and agent instruction files.
 3. Read the matching Markdown documents or sections before modifying code.
 
 Useful commands:
@@ -17,8 +17,10 @@ Useful commands:
 ```bash
 rg "path/to/target_file" DOC_INDEX.md
 rg "keyword1|keyword2" DOC_INDEX.md
-rg "path/to/target_file" --glob "*.md"
-rg "^#{1,3} " --glob "*.md"
+
+rg "path/to/target_file" --glob "*.md" --glob "!DOC_INDEX.md" --glob "!AGENTS.md" --glob "!CLAUDE.md" --glob "!.codex/**" --glob "!.claude/**"
+rg "keyword1|keyword2" --glob "*.md" --glob "!DOC_INDEX.md" --glob "!AGENTS.md" --glob "!CLAUDE.md" --glob "!.codex/**" --glob "!.claude/**"
+rg "^#{1,3} " --glob "*.md" --glob "!DOC_INDEX.md" --glob "!AGENTS.md" --glob "!CLAUDE.md" --glob "!.codex/**" --glob "!.claude/**"
 ```
 
 After creating, deleting, renaming, or editing Markdown files:
