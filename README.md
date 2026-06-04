@@ -132,6 +132,31 @@ rg "^#{1,3} " --glob "*.md"
 
 Good Markdown structure makes the generated index more useful.
 
+`md-router` indexes valid ATX headings only:
+
+```md
+# Title
+## Section
+### Subsection
+```
+
+Heading rules:
+
+- Use a space or tab after the `#` marker.
+- Use at most three leading spaces before the heading marker.
+- Use H1-H3 for indexed structure.
+- Use ATX headings instead of Setext headings.
+
+Setext headings are intentionally ignored in the MVP:
+
+```md
+Title
+=====
+
+Section
+-------
+```
+
 Prefer:
 
 ```md
@@ -175,12 +200,10 @@ Prefer semantic headings:
 `doc_scan.sh` extracts:
 
 ```text
-FILE
-DIR
-TITLE
-HEADINGS
-CODE_REFS
-LINKS
+file path
+H1-H3 heading tree
+inline code path references
+Markdown document links
 ```
 
 Example output:
