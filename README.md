@@ -2,13 +2,13 @@
 
 A tiny heading-based Markdown indexer for docs-everywhere repositories.
 
-`md-router` lets you keep documentation next to the code, config, or data it explains, while generating a grep-friendly `DOC_INDEX.md` that coding agents can search before editing.
+`md-router` lets you keep documentation next to the code, config, or data it explains, while generating a grep-friendly, Obsidian-compatible `DOC_INDEX.md` that coding agents can search before editing.
 
 ## Why
 
 Large repositories often keep documentation next to the modules, APIs, database code, config, or data it explains. That layout is good for humans, but coding agents can miss those docs unless there is a searchable index.
 
-`md-router` extracts Markdown headings, heading line numbers, inline code path references, and Markdown document links into a single compact `DOC_INDEX.md`.
+`md-router` extracts Markdown headings, heading line numbers, inline code path references, and Markdown document links into a single compact `DOC_INDEX.md`. Local Markdown links are resolved from the source document and emitted as Obsidian Wiki Links.
 
 ## Install
 
@@ -104,17 +104,52 @@ Rules:
 
 Setext headings are intentionally ignored in the MVP.
 
+## Obsidian links
+
+Open the repository root as an Obsidian vault. Generated document entries and
+resolved local Markdown links use Obsidian Wiki Link syntax, so they are
+clickable and appear in Backlinks:
+
+```md
+## [[docs/auth/README.md|docs/auth/README.md]]
+links: [[docs/api/error_handling.md|../api/error_handling.md]]
+```
+
+For a source link such as `[Error handling](../api/error_handling.md)`, the
+index resolves the target relative to the source file and writes the canonical
+path from the vault root. URL-encoded paths and heading fragments are decoded:
+
+```md
+[Target](../notes/target%20note.md#Target%20heading)
+```
+
+becomes:
+
+```md
+[[notes/target note.md#Target heading|../notes/target note.md#Target heading]]
+```
+
+Only existing local `.md` targets inside the vault are emitted as Wiki Links.
+External or unresolved targets are omitted from the generated `links:` line.
+The original Markdown links remain unchanged, so Obsidian records both the
+source-document relationship and the navigable index entry.
+
+Paths containing Obsidian-reserved link characters (such as `#`, `|`, `^`,
+`:`, `%`, `[` or `]`) are not emitted as Wiki Links. Such document entries
+remain readable as plain text, and their local references are omitted rather
+than generating a malformed link.
+
 ## Compact index format
 
 Example output:
 
 ```md
-## examples/todo-app/src/auth/README.md
+## [[examples/todo-app/src/auth/README.md|examples/todo-app/src/auth/README.md]]
 - L1 Auth Module
   - L5 Login Flow
   - L11 Session Validation
 refs: `src/auth/login.ts`, `src/auth/session.ts`
-links: `../api/error_handling.md`
+links: [[examples/todo-app/src/api/error_handling.md|../api/error_handling.md]]
 ```
 
 ## Requirements
