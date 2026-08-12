@@ -2,6 +2,9 @@
 set -euo pipefail
 
 OUT="DOC_INDEX.md"
+ROOT_DIR="$(pwd -P)"
+SESSION_INDEX_SCRIPT="${DOC_SESSION_INDEX_SCRIPT:-$ROOT_DIR/scripts/doc_session_index.py}"
+SESSION_DIR="${CODEX_SESSION_DIR:-$HOME/.codex/sessions}"
 
 hash_cmd_file() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -44,7 +47,12 @@ list_markdown_files() {
       ! -iname "AGENTS.md" \
       ! -iname "CLAUDE.md" \
       -print \
-  | sort
+  | sort \
+  | while read -r file; do
+      if grep -q '[^[:space:]]' "$file"; then
+        printf '%s\n' "$file"
+      fi
+    done
 }
 
 compute_docs_hash() {
@@ -79,6 +87,19 @@ if [ "$current_hash" != "$index_hash" ]; then
   echo ""
   echo "Run:"
   echo "  ./scripts/doc_scan.sh"
+  exit 1
+fi
+
+current_session_hash="$(python3 "$SESSION_INDEX_SCRIPT" "$SESSION_DIR" "$ROOT_DIR" --hash 2>/dev/null || printf '%s' unknown)"
+index_session_hash="$(grep -Eo 'DOC_INDEX_SESSION_HASH: [a-fA-F0-9]+' "$OUT" | awk '{print $2}' || true)"
+if [ -z "$index_session_hash" ]; then
+  echo "ERROR: $OUT has no DOC_INDEX_SESSION_HASH."
+  echo "Run: ./scripts/doc_scan.sh"
+  exit 1
+fi
+if [ "$current_session_hash" != "$index_session_hash" ]; then
+  echo "ERROR: $OUT session associations are stale."
+  echo "Run: ./scripts/doc_scan.sh"
   exit 1
 fi
 

@@ -31,6 +31,12 @@ Check freshness:
 ./scripts/doc_check.sh
 ```
 
+When Codex session logs are available under `~/.codex/sessions`, the scanner
+also records each Markdown file's UTC `last_modified` time and attaches matching
+session metadata below `task.md` or `task_plan.md`: `session_id`,
+`last_activity`, and `session_file`. Empty Markdown files are excluded. Set
+`CODEX_SESSION_DIR` to use a different session-log directory.
+
 Install the pre-commit hook:
 
 ```bash

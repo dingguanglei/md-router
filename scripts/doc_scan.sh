@@ -2,6 +2,9 @@
 set -euo pipefail
 
 OUT="DOC_INDEX.md"
+ROOT_DIR="$(pwd -P)"
+SESSION_INDEX_SCRIPT="${DOC_SESSION_INDEX_SCRIPT:-$ROOT_DIR/scripts/doc_session_index.py}"
+SESSION_DIR="${CODEX_SESSION_DIR:-$HOME/.codex/sessions}"
 
 hash_cmd_file() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -155,7 +158,22 @@ list_markdown_files() {
       ! -iname "AGENTS.md" \
       ! -iname "CLAUDE.md" \
       -print \
-  | sort
+  | sort \
+  | while read -r file; do
+      if grep -q '[^[:space:]]' "$file"; then
+        printf '%s\n' "$file"
+      fi
+    done
+}
+
+file_mtime() {
+  local epoch
+  if epoch="$(stat -c %Y -- "$1" 2>/dev/null)"; then
+    date -u -d "@${epoch}" '+%Y-%m-%dT%H:%M:%SZ'
+  else
+    epoch="$(stat -f %m -- "$1")"
+    date -u -r "${epoch}" '+%Y-%m-%dT%H:%M:%SZ'
+  fi
 }
 
 compute_docs_hash() {
@@ -168,15 +186,23 @@ compute_docs_hash() {
 }
 
 SOURCE_HASH="$(compute_docs_hash)"
+SESSION_HASH="$(python3 "$SESSION_INDEX_SCRIPT" "$SESSION_DIR" "$ROOT_DIR" --hash 2>/dev/null || printf '%s' unknown)"
 TMP="${OUT}.tmp"
+SESSION_MAP="${TMP}.sessions"
+trap 'rm -f "$TMP" "$SESSION_MAP"' EXIT
 
 cat > "$TMP" <<EOF2
 # DOC_INDEX.md
 
 <!-- AUTO-GENERATED. DO NOT EDIT. -->
 <!-- DOC_INDEX_SOURCE_HASH: $SOURCE_HASH -->
+<!-- DOC_INDEX_SESSION_HASH: $SESSION_HASH -->
 
 EOF2
+
+if [ -f "$SESSION_INDEX_SCRIPT" ] && [ -d "$SESSION_DIR" ]; then
+  python3 "$SESSION_INDEX_SCRIPT" "$SESSION_DIR" "$ROOT_DIR" --map > "$SESSION_MAP"
+fi
 
 first_file=1
 list_markdown_files \
@@ -189,6 +215,15 @@ list_markdown_files \
     first_file=0
 
     echo "## $(obsidian_document_entry "$clean")" >> "$TMP"
+    echo "- last_modified: \`$(file_mtime "$file")\`" >> "$TMP"
+
+    if [ -s "$SESSION_MAP" ]; then
+      awk -v target="$clean" '
+        $0 == "SESSION_MAP_BEGIN\t" target { in_block=1; next }
+        $0 == "SESSION_MAP_END" { in_block=0; next }
+        in_block { print }
+      ' "$SESSION_MAP" >> "$TMP"
+    fi
 
     awk '
       function fence_run(s, ch,   n) {
